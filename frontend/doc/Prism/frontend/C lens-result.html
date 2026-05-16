@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>世界观透镜 - 重述结果页</title>
+  <style>
+    :root {
+      --page-bg: #0f1119;
+      --text: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.62);
+      --line: rgba(255, 255, 255, 0.72);
+      --glass: rgba(12, 15, 22, 0.46);
+      --glass-strong: rgba(12, 15, 22, 0.66);
+      --ease: cubic-bezier(0.18, 0.9, 0.24, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: var(--page-bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .replay-demo {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 40;
+      padding: 9px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .phone {
+      position: relative;
+      width: 375px;
+      height: 812px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 34px;
+      background: #151821;
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.46);
+      isolation: isolate;
+    }
+
+    .photo {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 18% 25%, rgba(96, 148, 98, 0.95) 0 10%, transparent 22%),
+        radial-gradient(circle at 63% 59%, rgba(48, 44, 38, 0.85) 0 3%, transparent 8%),
+        radial-gradient(circle at 54% 72%, rgba(82, 78, 70, 0.88) 0 4%, transparent 11%),
+        linear-gradient(180deg, #9bb6c7 0 25%, #757d86 25% 32%, #7b746b 32% 37%, #9c9b93 37% 50%, #5d625f 50% 61%, #817b6f 61% 100%);
+    }
+
+    .photo::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0 31%, rgba(71, 76, 78, 0.82) 31% 36%, transparent 36%),
+        linear-gradient(90deg, transparent 0 57%, rgba(124, 120, 113, 0.9) 57% 74%, transparent 74%),
+        linear-gradient(180deg, transparent 0 34%, rgba(255, 255, 255, 0.17) 34% 35%, transparent 35% 52%, rgba(26, 29, 31, 0.42) 52% 54%, transparent 54%);
+      opacity: 0.8;
+    }
+
+    .photo::after {
+      content: "";
+      position: absolute;
+      left: -10%;
+      right: -10%;
+      bottom: -2%;
+      height: 34%;
+      background:
+        linear-gradient(12deg, transparent 0 40%, rgba(255, 255, 255, 0.12) 40% 42%, transparent 42%),
+        linear-gradient(168deg, rgba(46, 49, 48, 0.9), rgba(126, 118, 103, 0.96));
+      transform: skewY(-4deg);
+    }
+
+    .shade {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.3);
+      transition: background 420ms ease;
+      pointer-events: none;
+    }
+
+    .phone.is-lit .shade {
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .scanline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      z-index: 8;
+      height: 2px;
+      opacity: 0;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.62);
+      transform: translateY(-4px);
+      pointer-events: none;
+    }
+
+    .phone.is-scanning .scanline {
+      opacity: 1;
+      animation: scanDown 300ms ease-out forwards;
+    }
+
+    @keyframes scanDown {
+      from { transform: translateY(-4px); }
+      to { transform: translateY(812px); }
+    }
+
+    .topbar {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 18px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .back,
+    .lens-pill {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(15, 17, 25, 0.42);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      pointer-events: auto;
+    }
+
+    .back {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .lens-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+    }
+
+    .annotations {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .annotation {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: var(--w);
+      height: var(--h);
+      opacity: 0;
+      transform: translateZ(0);
+      transition: opacity 240ms ease, filter 240ms ease, transform 240ms ease;
+      pointer-events: auto;
+    }
+
+    .annotation.is-active {
+      opacity: 1;
+    }
+
+    .annotation.is-focus {
+      transform: scale(1.04);
+      filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.32));
+    }
+
+    .annotations.has-focus .annotation:not(.is-focus) {
+      opacity: 0.28;
+    }
+
+    .dot {
+      position: absolute;
+      left: var(--dot-x);
+      top: var(--dot-y);
+      z-index: 2;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12);
+      transform: translate(-50%, -50%) scale(0);
+    }
+
+    .annotation.is-active .dot {
+      animation: dotIn 360ms var(--ease) forwards;
+    }
+
+    .annotation.is-retiring .dot {
+      animation: dotOut 220ms ease forwards;
+    }
+
+    @keyframes dotIn {
+      0% { transform: translate(-50%, -50%) scale(0); }
+      78% { transform: translate(-50%, -50%) scale(1.28); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes dotOut {
+      to { transform: translate(-50%, -50%) scale(0); }
+    }
+
+    .line {
+      position: absolute;
+      inset: 0;
+      overflow: visible;
+    }
+
+    .line path {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 1;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 180;
+      stroke-dashoffset: 180;
+    }
+
+    .annotation.is-line .line path {
+      animation: growLine 420ms ease-out forwards;
+    }
+
+    .annotation.is-retiring .line path {
+      animation: shrinkLine 260ms ease-in forwards;
+    }
+
+    @keyframes growLine {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes shrinkLine {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: 180; }
+    }
+
+    .label {
+      position: absolute;
+      left: var(--label-x);
+      top: var(--label-y);
+      width: var(--label-w);
+      min-height: 42px;
+      padding: 7px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 7px;
+      background: rgba(5, 8, 12, 0.28);
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 12px;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      white-space: normal;
+    }
+
+    .annotation.is-typing .label {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .annotation.is-retiring .label {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    .bottom-bar {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 18px;
+      z-index: 22;
+      min-height: 88px;
+      display: grid;
+      grid-template-columns: 76px 1fr 88px;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      background: var(--glass);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .action {
+      min-height: 54px;
+      display: grid;
+      place-items: center;
+      gap: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.07);
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 12px;
+    }
+
+    .action span:first-child {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .save {
+      background: rgba(255, 255, 255, 0.16);
+      color: rgba(255, 255, 255, 0.94);
+    }
+
+    .save.is-saved {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.48);
+    }
+
+    .summary {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      line-height: 1.45;
+      letter-spacing: 0.03em;
+      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 124px;
+      z-index: 45;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.72);
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 13px;
+      opacity: 0;
+      transform: translate(-50%, 12px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .shutter {
+      position: absolute;
+      inset: 0;
+      z-index: 44;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .phone.is-shutter .shutter {
+      animation: shutterFlash 160ms ease-out forwards;
+    }
+
+    @keyframes shutterFlash {
+      0% { opacity: 0; }
+      35% { opacity: 0.92; }
+      100% { opacity: 0; }
+    }
+
+    .phone.is-saved-flash .annotation.is-active .dot {
+      animation: markFlash 360ms ease both;
+    }
+
+    .phone.is-saved-flash .annotation.is-active .line path {
+      animation: lineFlash 360ms ease both;
+    }
+
+    @keyframes markFlash {
+      0%, 100% {
+        box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12);
+      }
+      50% {
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.28);
+      }
+    }
+
+    @keyframes lineFlash {
+      0%, 100% { stroke: rgba(255, 255, 255, 0.72); }
+      50% { stroke: rgba(255, 255, 255, 1); }
+    }
+
+    @media (max-width: 430px) {
+      body {
+        place-items: start center;
+        padding-top: 10px;
+      }
+
+      .replay-demo {
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="replay-demo" type="button">重播动画</button>
+
+  <main class="phone" aria-label="世界观透镜重述结果页原型">
+    <div class="photo" aria-hidden="true"></div>
+    <div class="shade" aria-hidden="true"></div>
+    <div class="scanline" aria-hidden="true"></div>
+    <div class="shutter" aria-hidden="true"></div>
+
+    <nav class="topbar" aria-label="顶部导航">
+      <button class="back" type="button" aria-label="返回镜片选择页">‹</button>
+      <div class="lens-pill">🔬 博物学家</div>
+    </nav>
+
+    <section class="annotations" aria-label="AI 标注层">
+      <button class="annotation" type="button" data-text="悬铃木 Platanus orientalis / 落叶乔木，树龄约 25-30 年" style="--x: 26px; --y: 98px; --w: 198px; --h: 112px; --dot-x: 132px; --dot-y: 78px; --label-x: 0px; --label-y: 0px; --label-w: 166px;">
+        <span class="dot"></span>
+        <svg class="line" viewBox="0 0 198 112" aria-hidden="true">
+          <path d="M132 78 L96 54 L72 32" />
+        </svg>
+        <span class="label"></span>
+      </button>
+
+      <button class="annotation" type="button" data-text="近代建筑 / 约 1930s，新古典主义风格" style="--x: 174px; --y: 137px; --w: 182px; --h: 90px; --dot-x: 26px; --dot-y: 54px; --label-x: 72px; --label-y: 26px; --label-w: 110px;">
+        <span class="dot"></span>
+        <svg class="line" viewBox="0 0 182 90" aria-hidden="true">
+          <path d="M26 54 L66 54 L82 38" />
+        </svg>
+        <span class="label"></span>
+      </button>
+
+      <button class="annotation" type="button" data-text="麻雀 Passer montanus / 正在觅食，城市适应性物种" style="--x: 159px; --y: 322px; --w: 194px; --h: 94px; --dot-x: 42px; --dot-y: 48px; --label-x: 92px; --label-y: 18px; --label-w: 102px;">
+        <span class="dot"></span>
+        <svg class="line" viewBox="0 0 194 94" aria-hidden="true">
+          <path d="M42 48 L86 48 L100 34" />
+        </svg>
+        <span class="label"></span>
+      </button>
+
+      <button class="annotation" type="button" data-text="花岗岩路缘石 / 人工切割，表面已风化" style="--x: 18px; --y: 494px; --w: 178px; --h: 112px; --dot-x: 118px; --dot-y: 34px; --label-x: 0px; --label-y: 58px; --label-w: 124px;">
+        <span class="dot"></span>
+        <svg class="line" viewBox="0 0 178 112" aria-hidden="true">
+          <path d="M118 34 L78 58 L58 78" />
+        </svg>
+        <span class="label"></span>
+      </button>
+
+      <button class="annotation" type="button" data-text="中华田园猫 Felis catus / 亚成体，从容穿行" style="--x: 128px; --y: 566px; --w: 138px; --h: 116px; --dot-x: 58px; --dot-y: 16px; --label-x: 8px; --label-y: 62px; --label-w: 130px;">
+        <span class="dot"></span>
+        <svg class="line" viewBox="0 0 138 116" aria-hidden="true">
+          <path d="M58 16 L58 54 L72 70" />
+        </svg>
+        <span class="label"></span>
+      </button>
+    </section>
+
+    <section class="bottom-bar" aria-label="底部操作栏">
+      <button class="action change-lens" type="button">
+        <span aria-hidden="true">⟲</span>
+        <span>换镜片</span>
+      </button>
+      <div class="summary" aria-live="polite"></div>
+      <button class="action save" type="button">
+        <span aria-hidden="true">□</span>
+        <span class="save-text">保存切片</span>
+      </button>
+    </section>
+
+    <div class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    const phone = document.querySelector(".phone");
+    const annotations = Array.from(document.querySelectorAll(".annotation"));
+    const annotationLayer = document.querySelector(".annotations");
+    const labels = annotations.map((item) => item.querySelector(".label"));
+    const summary = document.querySelector(".summary");
+    const backButton = document.querySelector(".back");
+    const replayButton = document.querySelector(".replay-demo");
+    const changeLensButton = document.querySelector(".change-lens");
+    const saveButton = document.querySelector(".save");
+    const saveText = document.querySelector(".save-text");
+    const toast = document.querySelector(".toast");
+
+    const summaryText = "街角的日常，也有被看见的价值。——博物学家视角 · 记录于今日";
+    let timers = [];
+    let toastTimer = null;
+    let focusTimer = null;
+    let isSaved = false;
+
+    function addTimer(callback, delay) {
+      const timer = setTimeout(callback, delay);
+      timers.push(timer);
+      return timer;
+    }
+
+    function clearAllTimers() {
+      timers.forEach((timer) => clearTimeout(timer));
+      timers = [];
+      if (toastTimer) {
+        clearTimeout(toastTimer);
+        toastTimer = null;
+      }
+      if (focusTimer) {
+        clearTimeout(focusTimer);
+        focusTimer = null;
+      }
+    }
+
+    function typeInto(element, text, speed, done) {
+      element.textContent = "";
+      let index = 0;
+
+      function tick() {
+        element.textContent = text.slice(0, index);
+        index += 1;
+        if (index <= text.length) {
+          addTimer(tick, speed);
+        } else if (done) {
+          done();
+        }
+      }
+
+      tick();
+    }
+
+    function resetVisualState() {
+      phone.classList.remove("is-scanning", "is-lit", "is-shutter", "is-saved-flash");
+      annotationLayer.classList.remove("has-focus");
+      annotations.forEach((item) => {
+        item.classList.remove("is-active", "is-line", "is-typing", "is-focus", "is-retiring");
+      });
+      labels.forEach((label) => {
+        label.textContent = "";
+      });
+      summary.textContent = "";
+      toast.classList.remove("show");
+      isSaved = false;
+      saveButton.classList.remove("is-saved");
+      saveText.textContent = "保存切片";
+    }
+
+    function replay() {
+      clearAllTimers();
+      resetVisualState();
+
+      requestAnimationFrame(() => {
+        phone.classList.add("is-scanning");
+      });
+
+      addTimer(() => {
+        phone.classList.add("is-lit");
+      }, 300);
+
+      addTimer(() => {
+        annotations.forEach((item, index) => {
+          const text = item.dataset.text;
+          addTimer(() => {
+            item.classList.add("is-active");
+            addTimer(() => item.classList.add("is-line"), 180);
+            addTimer(() => {
+              item.classList.add("is-typing");
+              typeInto(item.querySelector(".label"), text, 50);
+            }, 480);
+          }, index * 700);
+        });
+      }, 500);
+
+      addTimer(() => {
+        typeInto(summary, summaryText, 45);
+      }, 4000);
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1600);
+    }
+
+    function focusAnnotation(item) {
+      annotationLayer.classList.add("has-focus");
+      annotations.forEach((annotation) => annotation.classList.remove("is-focus"));
+      item.classList.add("is-focus");
+
+      if (focusTimer) clearTimeout(focusTimer);
+      focusTimer = setTimeout(() => {
+        annotationLayer.classList.remove("has-focus");
+        item.classList.remove("is-focus");
+      }, 3000);
+    }
+
+    function retractAnnotations() {
+      clearAllTimers();
+      summary.textContent = "";
+      annotationLayer.classList.remove("has-focus");
+      annotations.forEach((item) => item.classList.remove("is-focus"));
+
+      const reversed = [...annotations].reverse();
+      reversed.forEach((item, index) => {
+        setTimeout(() => {
+          item.classList.add("is-retiring");
+          item.classList.remove("is-typing");
+          setTimeout(() => {
+            item.classList.remove("is-line");
+            item.querySelector(".label").textContent = "";
+          }, 150);
+          setTimeout(() => {
+            item.classList.remove("is-active", "is-retiring");
+          }, 360);
+        }, index * 120);
+      });
+
+      setTimeout(() => {
+        showToast("返回镜片选择");
+      }, 820);
+    }
+
+    function saveSlice() {
+      if (isSaved) return;
+      isSaved = true;
+      saveButton.classList.add("is-saved");
+      saveText.textContent = "已保存";
+      phone.classList.add("is-saved-flash", "is-shutter");
+
+      setTimeout(() => {
+        phone.classList.remove("is-shutter", "is-saved-flash");
+      }, 380);
+
+      showToast("认知切片已保存");
+    }
+
+    annotations.forEach((item) => {
+      item.addEventListener("click", () => focusAnnotation(item));
+    });
+
+    replayButton.addEventListener("click", replay);
+    backButton.addEventListener("click", replay);
+    changeLensButton.addEventListener("click", retractAnnotations);
+    saveButton.addEventListener("click", saveSlice);
+
+    window.addEventListener("load", replay);
+  </script>
+</body>
+</html>

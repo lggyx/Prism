@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>世界观透镜 - Observer Authentication</title>
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --w003: rgba(255,255,255,0.03);
+      --w004: rgba(255,255,255,0.04);
+      --w008: rgba(255,255,255,0.08);
+      --w01: rgba(255,255,255,0.1);
+      --w012: rgba(255,255,255,0.12);
+      --w02: rgba(255,255,255,0.2);
+      --w025: rgba(255,255,255,0.25);
+      --w03: rgba(255,255,255,0.3);
+      --w035: rgba(255,255,255,0.35);
+      --w05: rgba(255,255,255,0.5);
+      --w07: rgba(255,255,255,0.7);
+      --w085: rgba(255,255,255,0.85);
+      --mono: "SF Mono", Menlo, "Courier New", monospace;
+      --ease: cubic-bezier(0.18, 0.9, 0.24, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--w085);
+      font-family: var(--mono);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .reset-demo {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 50;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.6);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+    }
+
+    .phone {
+      position: relative;
+      width: 375px;
+      height: 812px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      background:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+        var(--bg);
+      background-size: 24px 24px;
+      box-shadow: 0 28px 90px rgba(0,0,0,0.52);
+      isolation: isolate;
+    }
+
+    .ambient {
+      position: absolute;
+      left: 50%;
+      top: 270px;
+      width: 420px;
+      height: 420px;
+      border: 1px solid var(--w003);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .ambient::before,
+    .ambient::after {
+      content: "";
+      position: absolute;
+      border: 1px solid var(--w003);
+      border-radius: 50%;
+      inset: 64px;
+    }
+
+    .ambient::after {
+      inset: 134px;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 2;
+      height: 210px;
+      display: grid;
+      justify-items: center;
+      align-content: end;
+      gap: 10px;
+      padding-bottom: 28px;
+    }
+
+    .lens-mark {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      border: 1px solid var(--w012);
+      border-radius: 50%;
+    }
+
+    .lens-mark::before,
+    .lens-mark::after {
+      content: "";
+      position: absolute;
+      background: var(--w012);
+    }
+
+    .lens-mark::before {
+      left: 50%;
+      top: 7px;
+      bottom: 7px;
+      width: 1px;
+      transform: translateX(-50%);
+    }
+
+    .lens-mark::after {
+      left: 7px;
+      right: 7px;
+      top: 50%;
+      height: 1px;
+      transform: translateY(-50%);
+    }
+
+    .lens-ring {
+      position: absolute;
+      inset: 13px;
+      border: 1px solid var(--w012);
+      border-radius: 50%;
+    }
+
+    .app-name {
+      color: var(--w085);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    .app-code {
+      color: var(--w025);
+      font-size: 10px;
+      letter-spacing: 0.3em;
+    }
+
+    .auth {
+      position: relative;
+      z-index: 2;
+      padding: 0 32px;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      color: var(--w035);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.2em;
+    }
+
+    .field,
+    .code-button,
+    .begin {
+      border: 0.5px solid var(--w01);
+      border-radius: 4px;
+      background: var(--w004);
+      transition: border-color 140ms ease, background 140ms ease;
+    }
+
+    .field {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .field:focus-within {
+      border-color: var(--w03);
+    }
+
+    .prefix {
+      width: 55px;
+      color: var(--w03);
+      font-size: 12px;
+      text-align: center;
+      border-right: 1px solid var(--w01);
+    }
+
+    input {
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      padding: 0 13px;
+      background: transparent;
+      color: var(--w085);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+    }
+
+    input::placeholder {
+      color: var(--w02);
+    }
+
+    .code-row {
+      display: grid;
+      grid-template-columns: 1fr 108px;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .code-button {
+      height: 48px;
+      color: var(--w07);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+    }
+
+    .code-button:disabled {
+      color: var(--w025);
+      cursor: default;
+    }
+
+    .begin {
+      width: 100%;
+      height: 48px;
+      margin-top: 24px;
+      color: var(--w07);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      background: var(--w008);
+      border-color: var(--w02);
+    }
+
+    .begin:active {
+      background: rgba(255,255,255,0.12);
+    }
+
+    .begin.is-loading .dots::after {
+      content: "";
+      animation: dots 900ms steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+      0% { content: ""; }
+      25% { content: "."; }
+      50% { content: ".."; }
+      75%, 100% { content: "..."; }
+    }
+
+    .legal {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 42px;
+      z-index: 2;
+      color: var(--w02);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+      font-size: 11px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .legal button {
+      padding: 0;
+      background: transparent;
+      color: var(--w035);
+      font-size: 11px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 86px;
+      z-index: 20;
+      padding: 9px 12px;
+      border: 1px solid var(--w015);
+      border-radius: 4px;
+      background: rgba(0,0,0,0.76);
+      color: var(--w07);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      opacity: 0;
+      transform: translate(-50%, 10px);
+      transition: opacity 160ms ease, transform 160ms ease;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 430px) {
+      body {
+        place-items: start center;
+        padding-top: 10px;
+      }
+
+      .reset-demo {
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="reset-demo" type="button">RESET</button>
+
+  <main class="phone" aria-label="世界观透镜登录注册页">
+    <div class="ambient" aria-hidden="true"></div>
+
+    <section class="hero">
+      <div class="lens-mark" aria-hidden="true"><div class="lens-ring"></div></div>
+      <div class="app-name">世界观透镜</div>
+      <div class="app-code">WORLDVIEW LENS</div>
+    </section>
+
+    <section class="auth">
+      <h1 class="section-title">OBSERVER AUTHENTICATION</h1>
+
+      <label class="field">
+        <span class="prefix">MAIL</span>
+        <input class="email-input" type="email" inputmode="email" placeholder="输入邮箱" autocomplete="email" />
+      </label>
+
+      <div class="code-row">
+        <label class="field">
+          <input class="code-input" type="text" inputmode="numeric" placeholder="验证码" autocomplete="one-time-code" />
+        </label>
+        <button class="code-button" type="button">GET CODE</button>
+      </div>
+
+      <button class="begin" type="button"><span class="begin-text">BEGIN OBSERVATION</span><span class="dots"></span></button>
+    </section>
+
+    <p class="legal">
+      登录即表示同意<button type="button" data-doc="用户协议">《用户协议》</button>与<button type="button" data-doc="隐私政策">《隐私政策》</button>
+    </p>
+
+    <div class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    const emailInput = document.querySelector(".email-input");
+    const codeInput = document.querySelector(".code-input");
+    const codeButton = document.querySelector(".code-button");
+    const beginButton = document.querySelector(".begin");
+    const beginText = document.querySelector(".begin-text");
+    const resetButton = document.querySelector(".reset-demo");
+    const toast = document.querySelector(".toast");
+    const legalButtons = Array.from(document.querySelectorAll(".legal button"));
+
+    let toastTimer = null;
+    let codeTimer = null;
+    let loginTimer = null;
+    let seconds = 60;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+
+    function startCountdown() {
+      if (codeButton.disabled) return;
+      seconds = 60;
+      codeButton.disabled = true;
+      codeButton.textContent = "60s";
+
+      codeTimer = setInterval(() => {
+        seconds -= 1;
+        codeButton.textContent = `${seconds}s`;
+        if (seconds <= 0) {
+          clearInterval(codeTimer);
+          codeTimer = null;
+          codeButton.disabled = false;
+          codeButton.textContent = "GET CODE";
+        }
+      }, 1000);
+    }
+
+    function beginLogin() {
+      if (beginButton.classList.contains("is-loading")) return;
+      beginButton.classList.add("is-loading");
+      beginText.textContent = "VERIFYING";
+
+      loginTimer = setTimeout(() => {
+        showToast("登录成功，正在初始化");
+        beginButton.classList.remove("is-loading");
+        beginText.textContent = "ENTERING...";
+      }, 1500);
+    }
+
+    function resetState() {
+      emailInput.value = "";
+      codeInput.value = "";
+      beginButton.classList.remove("is-loading");
+      beginText.textContent = "BEGIN OBSERVATION";
+      clearTimeout(loginTimer);
+      loginTimer = null;
+      if (codeTimer) {
+        clearInterval(codeTimer);
+        codeTimer = null;
+      }
+      codeButton.disabled = false;
+      codeButton.textContent = "GET CODE";
+      showToast("RESET COMPLETE");
+    }
+
+    codeButton.addEventListener("click", startCountdown);
+    beginButton.addEventListener("click", beginLogin);
+    resetButton.addEventListener("click", resetState);
+    legalButtons.forEach((button) => {
+      button.addEventListener("click", () => showToast("查看协议"));
+    });
+  </script>
+</body>
+</html>

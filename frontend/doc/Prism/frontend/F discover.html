@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>世界观透镜 - Discover</title>
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --panel: #0d0f14;
+      --w006: rgba(255, 255, 255, 0.06);
+      --w008: rgba(255, 255, 255, 0.08);
+      --w015: rgba(255, 255, 255, 0.15);
+      --w025: rgba(255, 255, 255, 0.25);
+      --w03: rgba(255, 255, 255, 0.3);
+      --w035: rgba(255, 255, 255, 0.35);
+      --w04: rgba(255, 255, 255, 0.4);
+      --w045: rgba(255, 255, 255, 0.45);
+      --w05: rgba(255, 255, 255, 0.5);
+      --w06: rgba(255, 255, 255, 0.6);
+      --w07: rgba(255, 255, 255, 0.7);
+      --w085: rgba(255, 255, 255, 0.85);
+      --w09: rgba(255, 255, 255, 0.9);
+      --green: #79a979;
+      --gray: #8d929b;
+      --amber: #c79a4d;
+      --coral: #d9796b;
+      --blue: #6f93c9;
+      --pink: #d58aaa;
+      --mono: "SF Mono", Menlo, "Courier New", monospace;
+      --ease: cubic-bezier(0.18, 0.9, 0.24, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--w09);
+      font-family: var(--mono);
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .reset-demo {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 80;
+      padding: 8px 10px;
+      border: 1px solid var(--w015);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--w06);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+    }
+
+    .phone {
+      position: relative;
+      width: 375px;
+      height: 812px;
+      overflow: hidden;
+      border: 1px solid var(--w015);
+      border-radius: 6px;
+      background:
+        linear-gradient(var(--w006) 1px, transparent 1px),
+        linear-gradient(90deg, var(--w006) 1px, transparent 1px),
+        var(--bg);
+      background-size: 24px 24px;
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.52);
+      isolation: isolate;
+    }
+
+    .status {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      z-index: 12;
+      height: 46px;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      padding: 0 16px 12px;
+      border-bottom: 1px solid var(--w006);
+      background: rgba(10, 12, 16, 0.96);
+    }
+
+    .status span {
+      color: var(--w035);
+      font-size: 10px;
+      letter-spacing: 0.3em;
+    }
+
+    .scroll {
+      position: absolute;
+      inset: 46px 0 68px;
+      overflow-y: auto;
+      padding: 16px 16px 22px;
+      scrollbar-width: none;
+    }
+
+    .scroll::-webkit-scrollbar { display: none; }
+
+    .module { margin-bottom: 22px; }
+
+    .module-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      color: var(--w035);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      font-weight: 400;
+    }
+
+    .challenge {
+      position: relative;
+      width: 100%;
+      height: 100px;
+      display: grid;
+      grid-template-columns: 58px 1fr 58px;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 12px;
+      overflow: hidden;
+      border: 0.5px solid var(--w008);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      text-align: left;
+    }
+
+    .challenge-no {
+      color: var(--w015);
+      font-size: 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .challenge-copy {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+    }
+
+    .challenge-title {
+      overflow: hidden;
+      color: var(--w085);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .challenge-desc {
+      color: var(--w04);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .challenge-meta {
+      color: var(--w03);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+    }
+
+    .join {
+      height: 28px;
+      border: 1px solid var(--w015);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.018);
+      color: var(--w06);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+    }
+
+    .join.is-joined {
+      border-color: var(--w035);
+      color: var(--w09);
+    }
+
+    .progress {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 40%;
+      height: 1px;
+      background: var(--coral);
+    }
+
+    .trending {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .trending::-webkit-scrollbar { display: none; }
+
+    .trend-card {
+      flex: 0 0 90px;
+      height: 100px;
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 9px;
+      border: 1px solid var(--w006);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.018);
+      text-align: center;
+      transition: transform 100ms ease, border-color 100ms ease;
+    }
+
+    .trend-card:active {
+      transform: scale(1.02);
+      border-color: var(--w015);
+    }
+
+    .orb {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 0.5px solid color-mix(in srgb, var(--lens-color), transparent 45%);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.018);
+      box-shadow: 0 0 20px color-mix(in srgb, var(--lens-color), transparent 92%);
+    }
+
+    .orb svg {
+      width: 18px;
+      height: 18px;
+      stroke: color-mix(in srgb, var(--lens-color), white 16%);
+      stroke-width: 1.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .trend-name {
+      color: var(--w07);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .heat {
+      color: var(--w03);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .feed-title { margin-bottom: 12px; }
+
+    .signal {
+      margin-bottom: 16px;
+    }
+
+    .signal-head,
+    .signal-data {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .obs {
+      color: var(--w04);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+
+    .time {
+      color: var(--w025);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .signal-photo {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      display: block;
+      margin: 8px 0 8px;
+      overflow: hidden;
+      border: 1px solid var(--w006);
+      border-radius: 4px;
+      background: var(--photo);
+      text-align: left;
+      transition: border-color 100ms ease, box-shadow 100ms ease, filter 100ms ease;
+    }
+
+    .signal-photo.is-armed {
+      border-color: var(--w035);
+      box-shadow: 0 0 0 1px var(--w015), 0 0 24px rgba(255, 255, 255, 0.08);
+      filter: brightness(1.08);
+    }
+
+    .signal-photo::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 26% 24%, rgba(255,255,255,0.14), transparent 24%),
+        repeating-linear-gradient(90deg, transparent 0 27px, rgba(255,255,255,0.025) 27px 28px),
+        rgba(0,0,0,0.14);
+      pointer-events: none;
+    }
+
+    .mark {
+      position: absolute;
+      color: var(--w07);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+    }
+
+    .mark::before {
+      content: "";
+      position: absolute;
+      left: -36px;
+      top: 7px;
+      width: 30px;
+      height: 1px;
+      background: var(--w05, rgba(255,255,255,0.5));
+      transform: rotate(-18deg);
+      transform-origin: right center;
+    }
+
+    .mark.one { left: 160px; top: 38px; }
+    .mark.two { left: 90px; top: 112px; }
+
+    .lens-tag {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 22px;
+      padding: 0 8px;
+      border: 1px solid var(--w006);
+      border-radius: 4px;
+      background: rgba(6, 8, 12, 0.68);
+      color: var(--w06);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .dot {
+      width: 4px;
+      height: 4px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--dot);
+    }
+
+    .summary {
+      margin: 0 0 8px;
+      overflow: hidden;
+      color: var(--w06);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .signal-data {
+      color: var(--w025);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
+
+    .resonance {
+      background: transparent;
+      color: var(--w025);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      transition: transform 160ms var(--ease), color 160ms ease;
+    }
+
+    .resonance.is-on {
+      color: var(--w09);
+    }
+
+    .resonance.pop {
+      transform: scale(1.28);
+    }
+
+    .tabbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 12;
+      height: 68px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      border-top: 1px solid var(--w006);
+      background: var(--panel);
+    }
+
+    .tab {
+      position: relative;
+      height: 68px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 5px;
+      background: transparent;
+      color: var(--w025);
+      font-size: 9px;
+      letter-spacing: 0.06em;
+    }
+
+    .tab.is-active { color: var(--w09); }
+
+    .tab.is-active::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 18px;
+      height: 2px;
+      background: var(--w09);
+      transform: translateX(-50%);
+    }
+
+    .tab-icon {
+      width: 17px;
+      height: 17px;
+      display: grid;
+      place-items: center;
+      border: 1px solid currentColor;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+
+    .capture-icon {
+      width: 28px;
+      height: 28px;
+      border: 1px solid currentColor;
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+    }
+
+    .capture-icon::before {
+      content: "";
+      width: 13px;
+      height: 13px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+    }
+
+    .detail {
+      position: absolute;
+      inset: 0;
+      z-index: 44;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms ease;
+    }
+
+    .detail.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .detail.is-closing {
+      opacity: 1;
+      pointer-events: none;
+    }
+
+    .detail-photo {
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      background: var(--detail-bg);
+      transform: translate3d(var(--start-x), var(--start-y), 0) scale(var(--start-scale-x), var(--start-scale-y));
+      transform-origin: top left;
+      transition: transform 300ms var(--ease), border-radius 300ms var(--ease);
+    }
+
+    .detail.is-open .detail-photo {
+      border-radius: 0;
+      transform: translate3d(0, 0, 0) scale(1, 1);
+    }
+
+    .detail-photo::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 24% 18%, rgba(255,255,255,0.14), transparent 22%),
+        repeating-linear-gradient(90deg, transparent 0 27px, rgba(255,255,255,0.025) 27px 28px),
+        rgba(0,0,0,0.18);
+    }
+
+    .detail-back {
+      position: absolute;
+      top: 18px;
+      left: 16px;
+      z-index: 50;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--w015);
+      border-radius: 4px;
+      background: rgba(10, 12, 16, 0.54);
+      color: var(--w07);
+      font-size: 22px;
+      opacity: 0;
+      transition: opacity 150ms ease 130ms;
+    }
+
+    .detail.is-open .detail-back,
+    .detail.is-open .detail-notes,
+    .detail.is-open .detail-panel {
+      opacity: 1;
+    }
+
+    .detail-notes {
+      position: absolute;
+      inset: 0;
+      z-index: 49;
+      opacity: 0;
+      transition: opacity 150ms ease 150ms;
+      pointer-events: none;
+    }
+
+    .detail-note {
+      position: absolute;
+      color: var(--w07);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-shadow: 0 1px 10px rgba(0,0,0,0.8);
+    }
+
+    .detail-note::before {
+      content: "";
+      position: absolute;
+      left: -48px;
+      top: 8px;
+      width: 40px;
+      height: 1px;
+      background: var(--w05, rgba(255,255,255,0.5));
+      transform: rotate(-18deg);
+      transform-origin: right center;
+    }
+
+    .detail-note.one { left: 190px; top: 138px; width: 116px; }
+    .detail-note.two { left: 82px; top: 350px; width: 132px; }
+    .detail-note.three { left: 202px; top: 508px; width: 112px; }
+
+    .detail-panel {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 16px;
+      z-index: 50;
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--w015);
+      border-radius: 4px;
+      background: rgba(8, 10, 14, 0.74);
+      opacity: 0;
+      transition: opacity 150ms ease 150ms;
+    }
+
+    .detail-source {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--w07);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .detail-summary {
+      margin: 0;
+      color: var(--w09);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .detail-data {
+      color: var(--w035);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .sheet {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 58;
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--w015);
+      border-radius: 4px;
+      background: rgba(10, 12, 16, 0.92);
+      opacity: 0;
+      transform: translateY(112%);
+      transition: opacity 220ms ease, transform 220ms var(--ease);
+      pointer-events: none;
+    }
+
+    .sheet.is-open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .sheet button {
+      height: 42px;
+      border: 1px solid var(--w006);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--w07);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+    }
+
+    .sheet .danger { color: var(--w05, rgba(255,255,255,0.5)); }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 82px;
+      z-index: 70;
+      padding: 9px 12px;
+      border: 1px solid var(--w015);
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.76);
+      color: var(--w07);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      opacity: 0;
+      transform: translate(-50%, 10px);
+      transition: opacity 160ms ease, transform 160ms ease;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 430px) {
+      body {
+        place-items: start center;
+        padding-top: 10px;
+      }
+
+      .reset-demo {
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="reset-demo" type="button">RESET</button>
+
+  <main class="phone" aria-label="世界观透镜发现页">
+    <header class="status">
+      <span>DISCOVER</span>
+      <span>1,247 OBSERVERS</span>
+    </header>
+
+    <section class="scroll">
+      <section class="module">
+        <h2 class="module-head"><span>WEEKLY CHALLENGE</span></h2>
+        <article class="challenge">
+          <div class="challenge-no">#07</div>
+          <div class="challenge-copy">
+            <div class="challenge-title">用废墟考古的眼光看你的通勤路</div>
+            <div class="challenge-desc">把每天经过的地方想象成千年后的考古现场</div>
+            <div class="challenge-meta">38 JOINED | 3D LEFT</div>
+          </div>
+          <button class="join" type="button">JOIN</button>
+          <div class="progress" aria-hidden="true"></div>
+        </article>
+      </section>
+
+      <section class="module">
+        <h2 class="module-head"><span>TRENDING LENSES</span></h2>
+        <div class="trending">
+          <button class="trend-card" type="button" style="--lens-color: var(--coral);">
+            <span class="orb"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V7l7-3 5 3v13"/><path d="M9 10h1M13 10h1M9 14h1M13 14h1"/></svg></span>
+            <span class="trend-name">废墟考古</span>
+            <span class="heat">↑ 142</span>
+          </button>
+          <button class="trend-card" type="button" style="--lens-color: var(--green);">
+            <span class="orb"><svg viewBox="0 0 24 24"><path d="M5 19c8 0 13-6 14-14-8 1-14 6-14 14Z"/><path d="M5 19c4-5 8-8 14-14"/></svg></span>
+            <span class="trend-name">博物学家</span>
+            <span class="heat">↑ 98</span>
+          </button>
+          <button class="trend-card" type="button" style="--lens-color: var(--blue);">
+            <span class="orb"><svg viewBox="0 0 24 24"><path d="M4 20V4"/><path d="M4 20h16"/><path d="M8 17v-5M12 17V8M16 17v-8"/></svg></span>
+            <span class="trend-name">经济学家</span>
+            <span class="heat">↑ 67</span>
+          </button>
+          <button class="trend-card" type="button" style="--lens-color: var(--pink);">
+            <span class="orb"><svg viewBox="0 0 24 24"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+            <span class="trend-name">儿童视角</span>
+            <span class="heat">↑ 53</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="module feed">
+        <h2 class="module-head feed-title"><span>SIGNAL FEED</span><span>LATEST</span></h2>
+        <div class="signals"></div>
+      </section>
+    </section>
+
+    <nav class="tabbar" aria-label="底部导航">
+      <button class="tab" type="button" data-tab="COLLECT"><span class="tab-icon">▱</span><span>COLLECT</span></button>
+      <button class="tab" type="button" data-tab="LENSES"><span class="tab-icon">◇</span><span>LENSES</span></button>
+      <button class="tab" type="button" data-tab="CAPTURE"><span class="capture-icon"></span><span>CAPTURE</span></button>
+      <button class="tab is-active" type="button" data-tab="DISCOVER"><span class="tab-icon">⌖</span><span>DISCOVER</span></button>
+      <button class="tab" type="button" data-tab="PROFILE"><span class="tab-icon">⌁</span><span>PROFILE</span></button>
+    </nav>
+
+    <section class="detail" aria-label="信号详情">
+      <div class="detail-photo"></div>
+      <button class="detail-back" type="button" aria-label="返回">‹</button>
+      <div class="detail-notes" aria-hidden="true">
+        <div class="detail-note one">ANNOTATION A</div>
+        <div class="detail-note two">SOURCE TRACE</div>
+        <div class="detail-note three">RESONANCE FIELD</div>
+      </div>
+      <div class="detail-panel">
+        <div class="detail-source"><span class="dot"></span><span class="detail-id"></span><span>|</span><span class="detail-lens"></span></div>
+        <p class="detail-summary"></p>
+        <div class="detail-data"></div>
+      </div>
+    </section>
+
+    <section class="sheet" aria-label="信号操作面板">
+      <button type="button" data-action="SAVE TO COLLECTION">SAVE TO COLLECTION</button>
+      <button type="button" data-action="USE SAME LENS">USE SAME LENS</button>
+      <button class="danger" type="button" data-action="REPORT">REPORT</button>
+    </section>
+
+    <div class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    const signalsData = [
+      { id: "OBS-0042", time: "2h ago", lens: "博物学家", dot: "var(--green)", photo: "linear-gradient(155deg, #355f63, #203c3b 50%, #121d20)", summary: "这棵银杏比这条路存在的时间更久。", coord: "36.67°N 117.05°E", resonance: 12 },
+      { id: "OBS-0118", time: "5h ago", lens: "都市倦怠", dot: "var(--gray)", photo: "linear-gradient(155deg, #4d4f55, #2f3338 52%, #171b20)", summary: "便利店的灯光是凌晨三点唯一的陪伴。", coord: "31.23°N 121.47°E", resonance: 27 },
+      { id: "OBS-0007", time: "8h ago", lens: "宋代文人", dot: "var(--amber)", photo: "linear-gradient(150deg, #8b6c35, #4d3823 50%, #1f1a16)", summary: "檐下听雨，不知今夕何夕。", coord: "30.25°N 120.16°E", resonance: 8 },
+      { id: "OBS-0203", time: "12h ago", lens: "废墟考古", dot: "var(--coral)", photo: "linear-gradient(145deg, #743d3d, #43242a 50%, #1c171d)", summary: "这个邮筒已经不接收任何东西了。", coord: "39.90°N 116.40°E", resonance: 34 },
+      { id: "OBS-0091", time: "1d ago", lens: "经济学家", dot: "var(--blue)", photo: "linear-gradient(160deg, #607378, #34484b 48%, #17211f)", summary: "一个路口的红绿灯配时，决定了三家店的命运。", coord: "22.54°N 114.06°E", resonance: 19 }
+    ];
+
+    const signals = document.querySelector(".signals");
+    const joinButton = document.querySelector(".join");
+    const trendCards = Array.from(document.querySelectorAll(".trend-card"));
+    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const sheet = document.querySelector(".sheet");
+    const detail = document.querySelector(".detail");
+    const detailPhoto = document.querySelector(".detail-photo");
+    const detailBack = document.querySelector(".detail-back");
+    const detailDot = document.querySelector(".detail-source .dot");
+    const detailId = document.querySelector(".detail-id");
+    const detailLens = document.querySelector(".detail-lens");
+    const detailSummary = document.querySelector(".detail-summary");
+    const detailData = document.querySelector(".detail-data");
+    const resetButton = document.querySelector(".reset-demo");
+    const toast = document.querySelector(".toast");
+    const phone = document.querySelector(".phone");
+
+    let toastTimer = null;
+    let pressTimer = null;
+    let longPressed = false;
+    let activeSignal = null;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1400);
+    }
+
+    function renderSignals() {
+      signals.innerHTML = signalsData.map((item, index) => `
+        <article class="signal" data-index="${index}">
+          <div class="signal-head">
+            <span class="obs">${item.id}</span>
+            <span class="time">${item.time}</span>
+          </div>
+          <button class="signal-photo" type="button" style="--photo: ${item.photo};">
+            <span class="mark one">TRACE</span>
+            <span class="mark two">READ</span>
+            <span class="lens-tag"><span class="dot" style="--dot: ${item.dot};"></span>${item.lens}</span>
+          </button>
+          <p class="summary">${item.summary}</p>
+          <div class="signal-data">
+            <span>${item.coord}</span>
+            <button class="resonance" type="button" data-count="${item.resonance}">◇ ${item.resonance}</button>
+          </div>
+        </article>
+      `).join("");
+
+      document.querySelectorAll(".signal").forEach((signal) => {
+        const index = Number(signal.dataset.index);
+        const photo = signal.querySelector(".signal-photo");
+        const resonance = signal.querySelector(".resonance");
+
+        photo.addEventListener("click", () => openDetail(signal, signalsData[index]));
+        photo.addEventListener("pointerdown", () => startPress(signal, photo));
+        photo.addEventListener("pointerup", endPress);
+        photo.addEventListener("pointerleave", endPress);
+        photo.addEventListener("pointercancel", endPress);
+
+        resonance.addEventListener("click", () => toggleResonance(resonance));
+      });
+    }
+
+    function openDetail(signalEl, data) {
+      if (longPressed) return;
+      const photo = signalEl.querySelector(".signal-photo");
+      photo.classList.add("is-armed");
+      setTimeout(() => {
+        photo.classList.remove("is-armed");
+        const phoneBox = phone.getBoundingClientRect();
+        const box = photo.getBoundingClientRect();
+        detail.style.setProperty("--start-x", box.left - phoneBox.left + "px");
+        detail.style.setProperty("--start-y", box.top - phoneBox.top + "px");
+        detail.style.setProperty("--start-scale-x", box.width / 375);
+        detail.style.setProperty("--start-scale-y", box.height / 812);
+        detail.style.setProperty("--detail-bg", data.photo);
+        detailDot.style.setProperty("--dot", data.dot);
+        detailId.textContent = data.id;
+        detailLens.textContent = data.lens;
+        detailSummary.textContent = data.summary;
+        detailData.textContent = `${data.coord} | ${data.time}`;
+        detail.classList.add("is-open");
+      }, 100);
+    }
+
+    function closeDetail() {
+      if (!detail.classList.contains("is-open")) return;
+      detail.classList.add("is-closing");
+      detail.classList.remove("is-open");
+      setTimeout(() => detail.classList.remove("is-closing"), 320);
+    }
+
+    function toggleResonance(button) {
+      if (button.classList.contains("is-on")) return;
+      const next = Number(button.dataset.count) + 1;
+      button.dataset.count = String(next);
+      button.textContent = `◆ ${next}`;
+      button.classList.add("is-on", "pop");
+      setTimeout(() => button.classList.remove("pop"), 180);
+    }
+
+    function startPress(signal, photo) {
+      longPressed = false;
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(() => {
+        longPressed = true;
+        activeSignal = signal;
+        photo.classList.add("is-armed");
+        sheet.classList.add("is-open");
+        setTimeout(() => photo.classList.remove("is-armed"), 180);
+      }, 500);
+    }
+
+    function endPress() {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+
+    function resetPage() {
+      joinButton.textContent = "JOIN";
+      joinButton.classList.remove("is-joined");
+      sheet.classList.remove("is-open");
+      closeDetail();
+      tabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.tab === "DISCOVER"));
+      renderSignals();
+      showToast("RESET COMPLETE");
+    }
+
+    joinButton.addEventListener("click", () => {
+      joinButton.textContent = "JOINED";
+      joinButton.classList.add("is-joined");
+      showToast("已加入本周挑战");
+    });
+
+    trendCards.forEach((card) => {
+      card.addEventListener("click", () => showToast("查看镜片详情"));
+    });
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((item) => item.classList.remove("is-active"));
+        tab.classList.add("is-active");
+        const name = tab.dataset.tab;
+        showToast(name === "CAPTURE" ? "打开取景页" : `跳转到 ${name}`);
+      });
+    });
+
+    sheet.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      sheet.classList.remove("is-open");
+      showToast(button.dataset.action);
+    });
+
+    detailBack.addEventListener("click", closeDetail);
+    resetButton.addEventListener("click", resetPage);
+
+    renderSignals();
+  </script>
+</body>
+</html>

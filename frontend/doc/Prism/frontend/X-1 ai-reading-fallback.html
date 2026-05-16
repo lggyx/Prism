@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>世界观透镜 - AI Fallback</title>
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --panel: #0d0f14;
+      --w006: rgba(255,255,255,0.06);
+      --w012: rgba(255,255,255,0.12);
+      --w025: rgba(255,255,255,0.25);
+      --w035: rgba(255,255,255,0.35);
+      --w045: rgba(255,255,255,0.45);
+      --w06: rgba(255,255,255,0.6);
+      --w085: rgba(255,255,255,0.85);
+      --mono: "SF Mono", Menlo, "Courier New", monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--w085);
+      font-family: var(--mono);
+    }
+    button { border: 0; color: inherit; font: inherit; cursor: pointer; }
+    .reset-demo {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 20;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.04);
+      color: var(--w06);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+    }
+    .phone {
+      position: relative;
+      width: 375px;
+      height: 812px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      background:
+        radial-gradient(circle at 50% 34%, rgba(255,255,255,0.06), transparent 160px),
+        linear-gradient(var(--w006) 1px, transparent 1px),
+        linear-gradient(90deg, var(--w006) 1px, transparent 1px),
+        var(--bg);
+      background-size: auto, 24px 24px, 24px 24px;
+      box-shadow: 0 28px 90px rgba(0,0,0,0.52);
+    }
+    .top {
+      height: 58px;
+      display: grid;
+      grid-template-columns: 58px 1fr 58px;
+      align-items: end;
+      padding: 0 16px 12px;
+      border-bottom: 1px solid var(--w006);
+      background: rgba(10,12,16,0.94);
+    }
+    .back,
+    .mode {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--w012);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.025);
+      color: var(--w06);
+    }
+    .title {
+      color: var(--w035);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-align: center;
+    }
+    .state {
+      position: absolute;
+      left: 30px;
+      right: 30px;
+      top: 130px;
+      bottom: 132px;
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      text-align: center;
+    }
+    .symbol {
+      width: 82px;
+      height: 82px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--w012);
+      border-radius: 50%;
+      color: var(--w045);
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    p {
+      margin: 10px 0 0;
+      color: var(--w045);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .code {
+      margin-top: 14px;
+      color: var(--w025);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+    }
+    .actions {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .actions button {
+      height: 44px;
+      border: 1px solid var(--w012);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.025);
+      color: var(--w06);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+    }
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 82px;
+      z-index: 40;
+      padding: 9px 12px;
+      border: 1px solid var(--w012);
+      border-radius: 4px;
+      background: rgba(0,0,0,0.76);
+      color: var(--w06);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      opacity: 0;
+      transform: translate(-50%, 10px);
+      transition: opacity 160ms ease, transform 160ms ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @media (max-width: 430px) {
+      body { place-items: start center; padding-top: 10px; }
+      .reset-demo { top: auto; right: 12px; bottom: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <button class="reset-demo" type="button">RESET</button>
+  <main class="phone" aria-label="AI 解析失败或空结果状态">
+    <header class="top">
+      <button class="back" type="button">‹</button>
+      <div class="title">READING STATUS</div>
+      <button class="mode" type="button">↺</button>
+    </header>
+    <section class="state">
+      <div class="symbol">!</div>
+      <h1>解析失败</h1>
+      <p>这次镜片没有稳定成像。可以重试，或重新拍摄一张更清晰的现场。</p>
+      <div class="code">MODEL_ERROR | TIMEOUT</div>
+    </section>
+    <footer class="actions">
+      <button class="retake" type="button">RETAKE</button>
+      <button class="retry" type="button">RETRY</button>
+    </footer>
+    <div class="toast" role="status" aria-live="polite"></div>
+  </main>
+  <script>
+    const mode = document.querySelector(".mode");
+    const title = document.querySelector("h1");
+    const copy = document.querySelector("p");
+    const code = document.querySelector(".code");
+    const symbol = document.querySelector(".symbol");
+    const buttons = Array.from(document.querySelectorAll("button"));
+    const toast = document.querySelector(".toast");
+    let empty = false;
+    let timer = null;
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(timer);
+      timer = setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+    function render() {
+      title.textContent = empty ? "画面太模糊" : "解析失败";
+      copy.textContent = empty ? "这片视野太模糊了，试试靠近一点？" : "这次镜片没有稳定成像。可以重试，或重新拍摄一张更清晰的现场。";
+      code.textContent = empty ? "EMPTY_READING | BLURRY" : "MODEL_ERROR | TIMEOUT";
+      symbol.textContent = empty ? "∅" : "!";
+    }
+    mode.addEventListener("click", () => { empty = !empty; render(); showToast(empty ? "切换为空结果状态" : "切换为失败状态"); });
+    buttons.forEach((button) => {
+      if (button.classList.contains("reset-demo")) button.addEventListener("click", () => { empty = false; render(); showToast("RESET COMPLETE"); });
+      else if (!button.classList.contains("mode")) button.addEventListener("click", () => showToast(button.textContent === "RETRY" ? "重新解析" : "返回取景页"));
+    });
+  </script>
+</body>
+</html>
