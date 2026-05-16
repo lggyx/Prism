@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_HOST: mysql
+      PUBLIC_ASSET_ROOT_DIR: /app/storage
+    ports:
+      - "3000:3000"
+    volumes:
+      - prism_backend_storage:/app/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: prism
+      MYSQL_USER: prism
+      MYSQL_PASSWORD: prism_dev_password
+      MYSQL_ROOT_PASSWORD: prism_root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - prism_mysql_data:/var/lib/mysql
+      - ./backend/src/data/schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ./backend/src/data/seed.sql:/docker-entrypoint-initdb.d/002_seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uprism", "-pprism_dev_password"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  prism_mysql_data:
+  prism_backend_storage:

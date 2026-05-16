@@ -1,0 +1,30 @@
+{
+  "name": "prism-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.14",
+  "scripts": {
+    "dev": "bun --watch --env-file=.env.development src/index.ts",
+    "dev:env": "bun --watch --env-file=.env src/index.ts",
+    "dev:3000": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "db:init": "bun --env-file=.env.development src/data/init-db.ts",
+    "db:init:env": "bun --env-file=.env src/data/init-db.ts",
+    "test": "bun test",
+    "test:ai": "bun --env-file=.env scripts/ai-provider-test.ts",
+    "test:live": "bun --env-file=.env.development scripts/live-api-test.ts",
+    "test:live:env": "bun --env-file=.env scripts/live-api-test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.7.5",
+    "hono": "^4.10.7",
+    "mysql2": "^3.15.3",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.4",
+    "typescript": "^5.9.3"
+  }
+}
