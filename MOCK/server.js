@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || "0.0.0.0";
 const API_PREFIX = "/api/v1";
 const now = () => new Date().toISOString();
 const ok = (data) => ({ code: 0, message: "ok", data });
@@ -486,7 +487,7 @@ export function createMockServer() {
 }
 
 if (fileURLToPath(import.meta.url) === process.argv[1]) {
-  createMockServer().listen(PORT, "127.0.0.1", () => {
-    console.log(`Worldview Lens mock server listening at http://127.0.0.1:${PORT}${API_PREFIX}`);
+  createMockServer().listen(PORT, HOST, () => {
+    console.log(`Worldview Lens mock server listening at http://${HOST}:${PORT}${API_PREFIX}`);
   });
 }
