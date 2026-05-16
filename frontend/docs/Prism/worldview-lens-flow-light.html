@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>世界观透镜 - 全页面交互流程（强光可读版）</title>
+  <style>
+    :root {
+      --bg: #F5F3EC;
+      --surface: #FFFEFA;
+      --panel: #F0EEE6;
+      --text: #11181C;
+      --muted: rgba(17,24,28,0.66);
+      --faint: rgba(17,24,28,0.38);
+      --line: rgba(17,24,28,0.18);
+      --line-weak: rgba(17,24,28,0.1);
+      --line-strong: rgba(17,24,28,0.28);
+      --green: #187C65;
+      --green-soft: rgba(24,124,101,0.12);
+      --green-line: rgba(24,124,101,0.42);
+      --screen-frame: #151A1E;
+      --shadow: rgba(42,48,42,0.18);
+      --mono: "SF Mono", Menlo, "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      background:
+        linear-gradient(var(--line-weak) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-weak) 1px, transparent 1px),
+        radial-gradient(circle at 24% 16%, rgba(24,124,101,0.1), transparent 30%),
+        radial-gradient(circle at 82% 88%, rgba(177,84,62,0.08), transparent 34%),
+        var(--bg);
+      background-size: 28px 28px, 28px 28px, auto, auto, auto;
+      color: var(--text);
+      font-family: var(--mono);
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .stage {
+      position: relative;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      inset: 24px;
+      border: 1px solid var(--line-weak);
+      pointer-events: none;
+    }
+
+    .stage::after {
+      content: "OUTDOOR LIGHT MODE";
+      position: absolute;
+      left: 42px;
+      bottom: 34px;
+      color: rgba(17,24,28,0.26);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+    }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      width: 430px;
+      height: 880px;
+      border: 1px solid rgba(17,24,28,0.28);
+      border-radius: 10px;
+      background: var(--screen-frame);
+      box-shadow:
+        0 30px 90px var(--shadow),
+        0 0 0 8px rgba(255,255,255,0.55),
+        inset 0 0 0 1px rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #0a0c10;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      max-height: 100vh;
+      padding: 24px 18px;
+      border-left: 1px solid var(--line);
+      background: rgba(255,254,250,0.96);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: -16px 0 48px rgba(42,48,42,0.08);
+    }
+
+    .title {
+      border-bottom: 1px solid var(--line-weak);
+      padding-bottom: 16px;
+    }
+
+    .eyebrow {
+      color: var(--green);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+    }
+
+    .hint {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .flow {
+      min-height: 0;
+      display: grid;
+      gap: 8px;
+      overflow: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(17,24,28,0.28) transparent;
+    }
+
+    .group {
+      margin: 10px 0 2px;
+      color: rgba(17,24,28,0.44);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      font-weight: 700;
+    }
+
+    .group:first-child { margin-top: 0; }
+
+    .flow button {
+      position: relative;
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 10px 9px 34px;
+      border: 1px solid var(--line-weak);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.62);
+      text-align: left;
+    }
+
+    .flow button::before {
+      content: attr(data-step);
+      position: absolute;
+      left: 10px;
+      top: 11px;
+      color: var(--faint);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .flow button.is-active {
+      border-color: var(--green-line);
+      background: var(--green-soft);
+      box-shadow: inset 3px 0 0 var(--green);
+    }
+
+    .name {
+      display: block;
+      color: var(--text);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .file {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .controls button,
+    .reset {
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.72);
+      color: rgba(17,24,28,0.72);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      font-weight: 700;
+    }
+
+    .primary {
+      border-color: var(--green-line) !important;
+      color: var(--text) !important;
+      background: var(--green-soft) !important;
+    }
+
+    .note {
+      margin: 0;
+      padding-top: 14px;
+      border-top: 1px solid var(--line-weak);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
+    .toast {
+      position: fixed;
+      left: calc((100vw - 330px) / 2);
+      bottom: 28px;
+      z-index: 20;
+      transform: translateX(-50%) translateY(12px);
+      min-width: 220px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: rgba(255,254,250,0.96);
+      color: rgba(17,24,28,0.78);
+      box-shadow: 0 12px 34px rgba(42,48,42,0.16);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.is-show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 860px) {
+      body { grid-template-columns: 1fr; }
+      .sidebar {
+        min-height: auto;
+        max-height: none;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+      .screen {
+        width: 100vw;
+        height: 100vh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .stage::before,
+      .stage::after { display: none; }
+      .toast { left: 50%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" aria-label="强光可读版原型预览">
+    <div class="screen">
+      <iframe id="prototype" title="世界观透镜强光可读版全页面交互流程"></iframe>
+    </div>
+  </main>
+
+  <aside class="sidebar" aria-label="强光模式流程控制台">
+    <section class="title">
+      <div class="eyebrow">PRISM FLOW / OUTDOOR LIGHT</div>
+      <h1>世界观透镜强光可读流程</h1>
+      <p class="hint">强光可读版会给手机端原型动态注入亮色 App 主题：高对比文字、实色导航、明确边界，适合户外阳光下演示。</p>
+    </section>
+
+    <nav class="flow" id="flow"></nav>
+
+    <div class="controls">
+      <button type="button" id="prev">PREV</button>
+      <button type="button" id="next" class="primary">NEXT</button>
+    </div>
+    <button class="reset" type="button" id="reset">RESET FLOW</button>
+
+    <p class="note">
+      主链路：启动 → 登录 → 引导 → 收藏空态 → 权限 → 取景选镜片 → 重述结果 → 收藏页。自定义镜片入口在取景选镜片页底部。
+    </p>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const routes = [
+      { id: "splash", group: "01 START", name: "启动页", file: "frontend/0-1 splash.html", next: "auth" },
+      { id: "auth", group: "01 START", name: "登录注册", file: "frontend/H auth.html", next: "onboarding" },
+      { id: "onboarding", group: "01 START", name: "新用户引导", file: "frontend/0-3 onboarding.html", next: "collectionEmpty" },
+
+      { id: "collectionEmpty", group: "02 CORE LOOP", name: "收藏空状态", file: "frontend/J collection-empty.html", next: "permission" },
+      { id: "permission", group: "02 CORE LOOP", name: "权限解释页", file: "frontend/X-3 permission-request.html", next: "capture" },
+      { id: "capture", group: "02 CORE LOOP", name: "取景到镜片选择", file: "frontend/B+A capture-to-lens.html", next: "result" },
+      { id: "voiceCreator", group: "02 CORE LOOP", name: "AI 语聊创建镜片", file: "frontend/B-1 voice-lens-creator.html", next: "capture" },
+      { id: "result", group: "02 CORE LOOP", name: "AI 重述结果", file: "frontend/C lens-result.html", next: "collection" },
+      { id: "fallback", group: "02 CORE LOOP", name: "AI 异常状态", file: "frontend/X-1 ai-reading-fallback.html", next: "capture" },
+      { id: "collection", group: "02 CORE LOOP", name: "收藏页", file: "frontend/D collection-negative.html", next: "lensLibrary" },
+      { id: "collectionFilterEmpty", group: "02 CORE LOOP", name: "收藏筛选空态", file: "frontend/X-2 collection-filter-empty.html", next: "capture" },
+
+      { id: "lensLibrary", group: "03 EXPLORE", name: "镜片库", file: "frontend/E lens-library.html", next: "discover" },
+      { id: "discover", group: "03 EXPLORE", name: "发现页", file: "frontend/F discover.html", next: "discoverEmpty" },
+      { id: "discoverEmpty", group: "03 EXPLORE", name: "发现空状态", file: "frontend/X-5 discover-empty.html", next: "profile" },
+      { id: "profile", group: "03 EXPLORE", name: "个人页", file: "frontend/G profile.html", next: "share" },
+      { id: "share", group: "03 EXPLORE", name: "分享预览", file: "frontend/X-4 share-preview.html", next: "collection" },
+
+      { id: "shootingLegacy", group: "04 LEGACY REFERENCES", name: "取景页旧版", file: "frontend/A shooting.html", next: "lensSelectionLegacy" },
+      { id: "lensSelectionLegacy", group: "04 LEGACY REFERENCES", name: "镜片选择旧版", file: "frontend/B lens-selection.html", next: "result" },
+      { id: "collectionLegacy", group: "04 LEGACY REFERENCES", name: "收藏旧视觉版", file: "frontend/-1 collection-negative-1.html", next: "collection" },
+    ];
+
+    const routeById = Object.fromEntries(routes.map((route) => [route.id, route]));
+    const iframe = document.querySelector("#prototype");
+    const flow = document.querySelector("#flow");
+    const prevButton = document.querySelector("#prev");
+    const nextButton = document.querySelector("#next");
+    const resetButton = document.querySelector("#reset");
+    const toast = document.querySelector("#toast");
+    let currentId = "splash";
+    let previousId = "splash";
+    let pendingPermissionRoute = "capture";
+    let deniedPermissionRoute = "collectionEmpty";
+    let toastTimer = null;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("is-show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("is-show"), 1500);
+    }
+
+    function renderFlow() {
+      let lastGroup = "";
+      let index = 0;
+      flow.innerHTML = routes.map((route) => {
+        const group = route.group !== lastGroup ? `<div class="group">${route.group}</div>` : "";
+        lastGroup = route.group;
+        index += 1;
+        return `
+          ${group}
+          <button type="button" data-route="${route.id}" data-step="${String(index).padStart(2, "0")}" class="${route.id === currentId ? "is-active" : ""}">
+            <span class="name">${route.name}</span>
+            <span class="file">${route.file}</span>
+          </button>
+        `;
+      }).join("");
+
+      flow.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => navigate(button.dataset.route));
+      });
+    }
+
+    function navigate(id) {
+      const route = routeById[id] || routeById.splash;
+      previousId = currentId;
+      currentId = route.id;
+      iframe.src = route.file;
+      renderFlow();
+      showToast(`FLOW -> ${route.name}`);
+    }
+
+    function navigateWithPermission(targetId, deniedId = currentId) {
+      pendingPermissionRoute = targetId;
+      deniedPermissionRoute = deniedId;
+      navigate("permission");
+    }
+
+    function goNext() {
+      if (currentId === "permission") {
+        navigate(pendingPermissionRoute || "capture");
+        return;
+      }
+      navigate(routeById[currentId].next || "collection");
+    }
+
+    function goPrev() {
+      const index = routes.findIndex((route) => route.id === currentId);
+      navigate(routes[Math.max(0, index - 1)].id);
+    }
+
+    function routeFromTab(value) {
+      const normalized = String(value || "").trim().toUpperCase();
+      if (normalized.includes("COLLECT") || normalized.includes("收藏")) return "collection";
+      if (normalized.includes("LENSES") || normalized.includes("镜片")) return "lensLibrary";
+      if (normalized.includes("CAPTURE") || normalized.includes("拍摄")) return "capture";
+      if (normalized.includes("DISCOVER") || normalized.includes("发现")) return "discover";
+      if (normalized.includes("PROFILE") || normalized.includes("我的")) return "profile";
+      return null;
+    }
+
+    function getDoc() {
+      try {
+        return iframe.contentDocument;
+      } catch (error) {
+        showToast("iframe 脚本被浏览器限制，请使用 NEXT");
+        return null;
+      }
+    }
+
+    function delegate(doc, selector, callback) {
+      doc.addEventListener("click", (event) => {
+        const target = event.target.closest(selector);
+        if (!target) return;
+        const result = callback(target, event);
+        if (result === false) return;
+        event.preventDefault();
+        event.stopPropagation();
+      }, true);
+    }
+
+    function installGlobalRoutes(doc) {
+      delegate(doc, ".tab", (tab) => {
+        const target = routeFromTab(tab.dataset.tab || tab.textContent);
+        if (!target) return false;
+        if (target === "capture") navigateWithPermission("capture", currentId);
+        else navigate(target);
+      });
+
+      delegate(doc, ".reset-demo", () => false);
+    }
+
+    function installOutdoorLightTheme(doc) {
+      const style = doc.createElement("style");
+      style.dataset.prismOutdoorLight = "true";
+      style.textContent = `
+        :root {
+          --bg: #F5F3EC !important;
+          --phone-bg: #F5F3EC !important;
+          --panel: #FFFEFA !important;
+          --page-bg: #F5F3EC !important;
+          --text: #11181C !important;
+          --muted: rgba(17,24,28,0.66) !important;
+          --line: rgba(17,24,28,0.36) !important;
+          --glass: rgba(255,254,250,0.92) !important;
+          --glass-strong: rgba(255,254,250,0.97) !important;
+          --w004: rgba(17,24,28,0.04) !important;
+          --w006: rgba(17,24,28,0.08) !important;
+          --w01: rgba(17,24,28,0.1) !important;
+          --w012: rgba(17,24,28,0.14) !important;
+          --w015: rgba(17,24,28,0.17) !important;
+          --w02: rgba(17,24,28,0.24) !important;
+          --w025: rgba(17,24,28,0.32) !important;
+          --w03: rgba(17,24,28,0.38) !important;
+          --w035: rgba(17,24,28,0.46) !important;
+          --w04: rgba(17,24,28,0.5) !important;
+          --w045: rgba(17,24,28,0.56) !important;
+          --w05: rgba(17,24,28,0.62) !important;
+          --w06: rgba(17,24,28,0.72) !important;
+          --w07: rgba(17,24,28,0.78) !important;
+          --w08: rgba(17,24,28,0.84) !important;
+          --w085: rgba(17,24,28,0.88) !important;
+          --w09: rgba(17,24,28,0.92) !important;
+          --green: #25876D !important;
+          --gray: #6D6F70 !important;
+          --amber: #9A6A16 !important;
+          --coral: #B6543E !important;
+          --blue: #246E9F !important;
+          --pink: #AD4E75 !important;
+        }
+
+        html,
+        body {
+          background:
+            linear-gradient(rgba(17,24,28,0.07) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(17,24,28,0.07) 1px, transparent 1px),
+            #F5F3EC !important;
+          background-size: 24px 24px !important;
+          color: rgba(17,24,28,0.92) !important;
+        }
+
+        .phone {
+          color: rgba(17,24,28,0.92) !important;
+          border-color: rgba(17,24,28,0.24) !important;
+          background:
+            linear-gradient(rgba(17,24,28,0.07) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(17,24,28,0.07) 1px, transparent 1px),
+            #F5F3EC !important;
+          background-size: 24px 24px !important;
+          box-shadow: 0 28px 82px rgba(42,48,42,0.22) !important;
+        }
+
+        .scene,
+        .photo,
+        .signal-photo,
+        .capture-stage,
+        .preview,
+        .sample-photo {
+          color: inherit;
+        }
+
+        .top,
+        .status,
+        .filters,
+        .tabbar,
+        .tab-bar,
+        .actions,
+        .bottom,
+        .bottom-bar,
+        .footer,
+        .auth,
+        .onboarding,
+        .lens-panel,
+        .detail,
+        .detail-top,
+        .detail-action,
+        .sheet,
+        .share-card,
+        .permission,
+        .draft,
+        .generating,
+        .toast {
+          background: rgba(255,254,250,0.96) !important;
+          border-color: rgba(17,24,28,0.14) !important;
+          color: rgba(17,24,28,0.88) !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+
+        .reticle,
+        .crosshair,
+        .grid,
+        .decor-grid {
+          opacity: 0.32 !important;
+        }
+
+        .top,
+        .status,
+        .filters,
+        .tabbar,
+        .tab-bar,
+        .actions,
+        .bottom-bar {
+          box-shadow: 0 1px 0 rgba(17,24,28,0.08) !important;
+        }
+
+        button,
+        .back,
+        .close,
+        .flash-btn,
+        .mode,
+        .navbtn,
+        .begin,
+        .start,
+        .cancel,
+        .done,
+        .allow,
+        .later,
+        .retry,
+        .retake,
+        .use-action,
+        .empty-action,
+        .detail-back,
+        .reset-demo,
+        .code-button,
+        .action,
+        .setting,
+        .stat,
+        .bar-row,
+        .day,
+        .join,
+        .resonance {
+          border-color: rgba(17,24,28,0.16) !important;
+          background-color: rgba(255,255,255,0.58) !important;
+          color: rgba(17,24,28,0.82) !important;
+        }
+
+        .title,
+        .kicker,
+        .section-title,
+        .empty-title,
+        .guide-title,
+        .draft-name,
+        .lens-title,
+        .name,
+        h1,
+        h2,
+        h3 {
+          color: rgba(17,24,28,0.9) !important;
+        }
+
+        .hint,
+        .subtitle,
+        .empty-subtitle,
+        .guide-copy,
+        .copy,
+        .desc,
+        .lens-desc,
+        .draft-desc,
+        .draft-english,
+        .meta,
+        .file,
+        .stat-label,
+        .setting-value,
+        .tab,
+        .filter,
+        .date,
+        .coord,
+        .toast {
+          color: rgba(17,24,28,0.58) !important;
+        }
+
+        .tab.is-active,
+        .filter.is-active,
+        .category.is-active,
+        .lens-card.is-selected,
+        .lens-row.is-armed {
+          color: rgba(17,24,28,0.92) !important;
+          border-color: rgba(37,135,109,0.48) !important;
+          background: rgba(37,135,109,0.12) !important;
+        }
+
+        .lens-card,
+        .custom-card,
+        .lens-row,
+        .trend-card,
+        .frame,
+        .slice-card,
+        .sample-card,
+        .signal,
+        .msg,
+        .bubble,
+        .item,
+        .card,
+        .empty,
+        .panel {
+          border-color: rgba(17,24,28,0.14) !important;
+          background-color: rgba(255,254,250,0.76) !important;
+          color: rgba(17,24,28,0.84) !important;
+        }
+
+        .frame::before,
+        .slice-card::before,
+        .signal-photo,
+        .sample-card::before {
+          filter: saturate(0.96) contrast(1.04) brightness(1.06);
+        }
+
+        .photo + .shade,
+        .shade {
+          background: rgba(255,255,255,0.12) !important;
+        }
+
+        .lens-pill,
+        .annotation .label,
+        .label,
+        .bottom-summary {
+          background: rgba(255,254,250,0.86) !important;
+          border-color: rgba(17,24,28,0.16) !important;
+          color: rgba(17,24,28,0.9) !important;
+          text-shadow: none !important;
+        }
+
+        .annotation,
+        .annotation text,
+        .annotation .label-text {
+          color: rgba(17,24,28,0.9) !important;
+        }
+
+        .line path,
+        .annotation path,
+        svg path {
+          stroke-opacity: 0.78;
+        }
+
+        input {
+          background: rgba(255,255,255,0.72) !important;
+          border-color: rgba(17,24,28,0.18) !important;
+          color: rgba(17,24,28,0.92) !important;
+        }
+
+        .capture-icon,
+        .mini-lens,
+        .large-lens,
+        .orb,
+        .lens-orb {
+          border-color: rgba(37,135,109,0.5) !important;
+          color: #25876D !important;
+        }
+
+        .shutter,
+        .mic {
+          background: rgba(255,254,250,0.86) !important;
+          border-color: rgba(17,24,28,0.22) !important;
+        }
+
+        .toast {
+          box-shadow: 0 14px 32px rgba(42,48,42,0.18) !important;
+        }
+      `;
+      doc.head.appendChild(style);
+    }
+
+    function injectRouter() {
+      const doc = getDoc();
+      if (!doc) return;
+
+      installOutdoorLightTheme(doc);
+
+      const style = doc.createElement("style");
+      style.textContent = `
+        .flow-hotspot {
+          outline: 1px solid rgba(24,124,101,0.5) !important;
+          box-shadow: 0 0 0 3px rgba(24,124,101,0.12) !important;
+        }
+      `;
+      doc.head.appendChild(style);
+
+      installGlobalRoutes(doc);
+
+      if (currentId === "splash") {
+        setTimeout(() => {
+          if (currentId === "splash") navigate("auth");
+        }, 1200);
+        delegate(doc, ".phone", () => navigate("auth"));
+      }
+
+      if (currentId === "auth") {
+        delegate(doc, ".begin", () => {
+          setTimeout(() => navigate("onboarding"), 450);
+        });
+      }
+
+      if (currentId === "onboarding") {
+        delegate(doc, ".start", (node) => {
+          if (node.textContent.trim() !== "START") return false;
+          navigate("collectionEmpty");
+        });
+      }
+
+      if (currentId === "collectionEmpty") {
+        delegate(doc, ".begin", () => navigateWithPermission("capture", "collectionEmpty"));
+      }
+
+      if (currentId === "permission") {
+        delegate(doc, ".allow", () => {
+          showToast("PERMISSION GRANTED");
+          setTimeout(() => navigate(pendingPermissionRoute || "capture"), 360);
+        });
+        delegate(doc, ".later", () => navigate(deniedPermissionRoute || previousId || "collectionEmpty"));
+      }
+
+      if (currentId === "capture") {
+        delegate(doc, ".custom-card", () => navigateWithPermission("voiceCreator", "capture"));
+        delegate(doc, ".done-message", () => navigate("result"));
+        delegate(doc, ".lens-card", () => {
+          setTimeout(() => {
+            if (currentId === "capture") navigate("result");
+          }, 1700);
+          return false;
+        });
+        delegate(doc, ".close", () => navigate("collectionEmpty"));
+      }
+
+      if (currentId === "voiceCreator") {
+        delegate(doc, ".back, .cancel, .back-picker", () => navigate("capture"));
+      }
+
+      if (currentId === "result") {
+        delegate(doc, ".save", () => {
+          setTimeout(() => {
+            if (currentId === "result") navigate("collection");
+          }, 900);
+          return false;
+        });
+        delegate(doc, ".change-lens, .back", () => navigate("capture"));
+      }
+
+      if (currentId === "fallback") {
+        delegate(doc, ".retry", () => {
+          showToast("RETRY READING");
+          setTimeout(() => navigate("result"), 500);
+        });
+        delegate(doc, ".retake, .back", () => navigate("capture"));
+      }
+
+      if (currentId === "collection") {
+        delegate(doc, "[data-action='EXPORT']", () => navigate("share"));
+        delegate(doc, "[data-action='REANALYZE']", () => navigateWithPermission("capture", "collection"));
+        delegate(doc, "[data-action='DELETE']", () => navigate("collectionFilterEmpty"));
+        delegate(doc, ".filter", (filter) => {
+          if (filter.textContent.includes("都市倦怠")) {
+            setTimeout(() => navigate("collectionFilterEmpty"), 220);
+            return false;
+          }
+          return false;
+        });
+      }
+
+      if (currentId === "collectionFilterEmpty") {
+        delegate(doc, ".begin", () => navigateWithPermission("capture", "collectionFilterEmpty"));
+        delegate(doc, ".filter", (filter) => {
+          if (filter.textContent.trim().startsWith("ALL")) navigate("collection");
+          else return false;
+        });
+      }
+
+      if (currentId === "collectionLegacy") {
+        delegate(doc, "[data-action='分享切片']", () => navigate("share"));
+        delegate(doc, "[data-action='换镜片重看']", () => navigateWithPermission("capture", "collectionLegacy"));
+        delegate(doc, ".tab", (tab) => {
+          const target = routeFromTab(tab.dataset.tab || tab.textContent);
+          if (!target) return false;
+          if (target === "capture") navigateWithPermission("capture", "collectionLegacy");
+          else navigate(target);
+        });
+      }
+
+      if (currentId === "lensLibrary") {
+        delegate(doc, ".use-action, .empty-action", () => navigateWithPermission("capture", "lensLibrary"));
+        delegate(doc, ".sample-card", () => navigate("result"));
+      }
+
+      if (currentId === "discover") {
+        delegate(doc, ".join", () => navigateWithPermission("capture", "discover"));
+        delegate(doc, ".trend-card", () => navigate("lensLibrary"));
+        delegate(doc, "[data-action='USE SAME LENS']", () => navigateWithPermission("capture", "discover"));
+        delegate(doc, "[data-action='SAVE TO COLLECTION']", () => navigate("collection"));
+        delegate(doc, "[data-action='REPORT']", () => navigate("discoverEmpty"));
+      }
+
+      if (currentId === "discoverEmpty") {
+        delegate(doc, ".begin", () => navigateWithPermission("capture", "discoverEmpty"));
+        delegate(doc, ".join", () => navigate("discover"));
+      }
+
+      if (currentId === "profile") {
+        delegate(doc, "[data-setting='signout']", () => navigate("auth"));
+        delegate(doc, "[data-setting='theme']", () => showToast("OUTDOOR LIGHT MODE ACTIVE"));
+      }
+
+      if (currentId === "share") {
+        delegate(doc, ".back", () => navigate("collection"));
+        delegate(doc, "[data-action]", () => false);
+      }
+
+      if (currentId === "shootingLegacy") {
+        delegate(doc, ".lens-card", () => {
+          setTimeout(() => navigate("result"), 600);
+          return false;
+        });
+      }
+
+      if (currentId === "lensSelectionLegacy") {
+        delegate(doc, ".custom-card", () => navigateWithPermission("voiceCreator", "lensSelectionLegacy"));
+        delegate(doc, ".done-message", () => navigate("result"));
+        delegate(doc, ".lens-card", () => {
+          setTimeout(() => navigate("result"), 1200);
+          return false;
+        });
+        delegate(doc, ".back", () => navigate("shootingLegacy"));
+      }
+    }
+
+    iframe.addEventListener("load", () => {
+      setTimeout(injectRouter, 120);
+    });
+
+    prevButton.addEventListener("click", goPrev);
+    nextButton.addEventListener("click", goNext);
+    resetButton.addEventListener("click", () => navigate("splash"));
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight") goNext();
+      if (event.key === "ArrowLeft") goPrev();
+    });
+
+    navigate("splash");
+  </script>
+</body>
+</html>
