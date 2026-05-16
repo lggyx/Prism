@@ -6,7 +6,7 @@
 
 ```bash
 cd MOCK
-npm start
+bun run start
 ```
 
 默认地址：
@@ -18,14 +18,14 @@ http://localhost:3000/api/v1
 可用环境变量：
 
 ```bash
-PORT=3001 npm start
+PORT=3001 bun run start
 ```
 
 ## 测试
 
 ```bash
 cd MOCK
-npm test
+bun run test
 ```
 
 测试脚本会启动临时 mock 服务，覆盖登录、镜片、上传、AI 轮询、切片、发现、挑战、共鸣、导出、设置、协议和客户端配置等接口。

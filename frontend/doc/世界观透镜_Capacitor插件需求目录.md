@@ -3,12 +3,14 @@
 > 基于《世界观透镜_后端并行开发接口文档_v2.md》、《世界观透镜_UI交互设计规范_v2.md》、《世界观透镜_项目进度总结.md》及全部前端原型页面整理。
 >
 > 技术栈：React + Capacitor（Android 优先，iOS 后续）
+>
+> 依赖管理：统一使用 **Bun**，不使用 npm / pnpm / yarn。
 
 ---
 
 ## 目录总览
 
-| # | 插件 | npm 包名 | 优先级 | 关联页面/功能 |
+| # | 插件 | 包名 | 优先级 | 关联页面/功能 |
 |---|------|----------|--------|---------------|
 | 1 | Camera Preview（自定义取景） | `@capacitor-community/camera-preview` | **P0** | A 取景页 |
 | 2 | Geolocation（GPS 定位） | `@capacitor/geolocation` | **P0** | A 取景页、拍摄上传、切片坐标 |
@@ -30,7 +32,7 @@
 
 ## 1. Camera Preview — 自定义取景界面
 
-**npm**: `@capacitor-community/camera-preview`
+**包名**: `@capacitor-community/camera-preview`
 
 **优先级**: P0（核心流程第一步）
 
@@ -59,7 +61,7 @@
 
 ## 2. Geolocation — GPS 定位
 
-**npm**: `@capacitor/geolocation`
+**包名**: `@capacitor/geolocation`
 
 **优先级**: P0
 
@@ -87,7 +89,7 @@
 
 ## 3. HTTP / 网络请求
 
-**npm**: 使用 `fetch` API 或 `axios`（不需要额外 Capacitor 插件）
+**包名**: 使用 `fetch` API 或 `axios`（不需要额外 Capacitor 插件）
 
 **优先级**: P0
 
@@ -111,7 +113,7 @@ X-Client-Version: 0.1.0
 
 ## 4. Preferences — 本地键值存储
 
-**npm**: `@capacitor/preferences`
+**包名**: `@capacitor/preferences`
 
 **优先级**: P0
 
@@ -136,7 +138,7 @@ X-Client-Version: 0.1.0
 
 ## 5. Device — 设备信息
 
-**npm**: `@capacitor/device`
+**包名**: `@capacitor/device`
 
 **优先级**: P0
 
@@ -154,7 +156,7 @@ X-Client-Version: 0.1.0
 
 ## 6. Splash Screen — 启动屏
 
-**npm**: `@capacitor/splash-screen`
+**包名**: `@capacitor/splash-screen`
 
 **优先级**: P0
 
@@ -176,7 +178,7 @@ X-Client-Version: 0.1.0
 
 ## 7. Status Bar — 状态栏控制
 
-**npm**: `@capacitor/status-bar`
+**包名**: `@capacitor/status-bar`
 
 **优先级**: P0
 
@@ -194,7 +196,7 @@ X-Client-Version: 0.1.0
 
 ## 8. Keyboard — 键盘控制
 
-**npm**: `@capacitor/keyboard`
+**包名**: `@capacitor/keyboard`
 
 **优先级**: P1
 
@@ -213,7 +215,7 @@ X-Client-Version: 0.1.0
 
 ## 9. Haptics — 触觉反馈
 
-**npm**: `@capacitor/haptics`
+**包名**: `@capacitor/haptics`
 
 **优先级**: P1
 
@@ -230,7 +232,7 @@ X-Client-Version: 0.1.0
 
 ## 10. Network — 网络状态检测
 
-**npm**: `@capacitor/network`
+**包名**: `@capacitor/network`
 
 **优先级**: P1
 
@@ -250,7 +252,7 @@ X-Client-Version: 0.1.0
 
 ## 11. Filesystem — 文件系统
 
-**npm**: `@capacitor/filesystem`
+**包名**: `@capacitor/filesystem`
 
 **优先级**: P2
 
@@ -271,7 +273,7 @@ X-Client-Version: 0.1.0
 
 ## 12. Share — 系统分享
 
-**npm**: `@capacitor/share`
+**包名**: `@capacitor/share`
 
 **优先级**: P2
 
@@ -294,7 +296,7 @@ X-Client-Version: 0.1.0
 
 ## 13. 录音插件 — 语音录制
 
-**npm**: `@capacitor-community/media` 或 `capacitor-voice-recorder`
+**包名**: `@capacitor-community/media` 或 `capacitor-voice-recorder`
 
 **优先级**: P2
 
@@ -320,7 +322,7 @@ X-Client-Version: 0.1.0
 
 ## 14. App — 应用生命周期
 
-**npm**: `@capacitor/app`
+**包名**: `@capacitor/app`
 
 **优先级**: P1
 
@@ -336,7 +338,7 @@ X-Client-Version: 0.1.0
 
 ## 15. Local Notifications — 本地通知
 
-**npm**: `@capacitor/local-notifications`
+**包名**: `@capacitor/local-notifications`
 
 **优先级**: P2
 
@@ -351,7 +353,7 @@ X-Client-Version: 0.1.0
 ### P0 — 演示闭环必须安装
 
 ```bash
-npm install @capacitor-community/camera-preview \
+bun add @capacitor-community/camera-preview \
             @capacitor/geolocation \
             @capacitor/preferences \
             @capacitor/device \
@@ -362,7 +364,7 @@ npm install @capacitor-community/camera-preview \
 ### P1 — 体验完整性
 
 ```bash
-npm install @capacitor/keyboard \
+bun add @capacitor/keyboard \
             @capacitor/haptics \
             @capacitor/network \
             @capacitor/app
@@ -371,7 +373,7 @@ npm install @capacitor/keyboard \
 ### P2 — 加分能力
 
 ```bash
-npm install @capacitor/filesystem \
+bun add @capacitor/filesystem \
             @capacitor/share \
             @capacitor/local-notifications \
             capacitor-voice-recorder
