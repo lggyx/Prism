@@ -48,9 +48,10 @@ const upload = multer({
   }
 })
 
-// 初始化OpenAI客户端
+// 初始化OpenAI客户端（支持OpenAI Compatible API）
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here'
+  apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here',
+  baseURL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'
 })
 
 // 存储卡片数据
@@ -149,7 +150,7 @@ app.post('/api/process-image', upload.single('image'), async (req, res) => {
       .modulate({
         brightness: 1.1,
         saturation: 1.3,
-        hue: Math.random() * 360
+        hue: Math.floor(Math.random() * 360)
       })
       .png()
       .toFile(styledImagePath)

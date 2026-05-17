@@ -1,0 +1,16 @@
+{
+  "appId": "com.example.aiworldcard",
+  "appName": "AI世界卡片",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Camera": {
+      "permissions": ["camera", "photos"]
+    },
+    "Share": {
+      "channels": ["whatsapp", "facebook", "twitter", "instagram"]
+    }
+  }
+}
